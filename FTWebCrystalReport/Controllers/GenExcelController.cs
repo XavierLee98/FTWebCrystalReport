@@ -21,7 +21,6 @@ namespace FTWebCrystalReport.Controllers
     {
         public GenExcelController() { }
 
-        [AllowAnonymous]
         [HttpPost]
         [Route("api/GenExcel/{id}")]
         public HttpResponseMessage GenerateExcel(int id, [FromBody] Dictionary<string, object> request)
