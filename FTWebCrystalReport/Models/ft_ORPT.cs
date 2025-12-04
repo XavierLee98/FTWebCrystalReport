@@ -17,6 +17,7 @@ namespace FTWebCrystalReport.Models
         protected static string CN_RptName = "ReportName";
         protected static string CN_RptDisplayName = "ReportName";
         protected static string CN_RptPath = "ReportPathFile";
+        protected static string CN_RptFormat = "ReportFormat";
         protected static string CN_docid = "docid";
         #endregion
 
@@ -24,6 +25,7 @@ namespace FTWebCrystalReport.Models
         public int Id { get; set; }
         public string RptName { get; set; }
         public string RptDisplayName { get; set; }
+        public string ReportFormat { get; set; }
         public string RptPath { get; set; }
         public List<ft_RPT1> Lines { get; set; }
         #endregion
@@ -42,6 +44,7 @@ namespace FTWebCrystalReport.Models
                     h.Id = int.Parse(dt.Rows[0][CN_Id].ToString().Trim());
                     if (dt.Columns.Contains(CN_RptName)) h.RptName = dt.Rows[0][CN_RptName].ToString().Trim();
                     if (dt.Columns.Contains(CN_RptDisplayName)) h.RptDisplayName = dt.Rows[0][CN_RptDisplayName].ToString().Trim();
+                    if (dt.Columns.Contains(CN_RptFormat)) h.RptDisplayName = dt.Rows[0][CN_RptFormat].ToString().Trim();
                     if (dt.Columns.Contains(CN_RptPath)) h.RptPath = dt.Rows[0][CN_RptPath].ToString().Trim();
                     h.Lines = ft_RPT1.LoadLinesBySKHdr(h.Id);
                 }

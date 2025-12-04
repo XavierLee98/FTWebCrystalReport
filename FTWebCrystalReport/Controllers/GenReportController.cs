@@ -1,20 +1,16 @@
 ﻿using CrystalDecisions.CrystalReports.Engine;
 using CrystalDecisions.Shared;
 using FTWebCrystalReport.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Configuration;
 using System.Web.Hosting;
 using System.Web.Http;
+
 namespace FTWebCrystalReport.Controllers
 {
     public class GenReportController : ApiController
@@ -91,13 +87,25 @@ namespace FTWebCrystalReport.Controllers
 
         private string genCrystalReport(ft_ORPT t)
         {
-            string folder = "", path = "", key = "", filename = "";
+            string folder = "", folderName = "Output", path = "", key = "", filename = "";
+
+            ExportFormatType rptFormat = ExportFormatType.PortableDocFormat;
+
             ft_ORPT h = new ft_ORPT();
             h = ft_ORPT.LoadById(t.Id);
 
-            folder = HostingEnvironment.MapPath("~/Pdf/" + t.Id + "/");
+            if (!string.IsNullOrEmpty(t.ReportFormat))
+            {
+                bool validFormat = Enum.TryParse(t.ReportFormat, true, out rptFormat);
+                if (!validFormat) throw new Exception("Crystal report format not valid.");
+            }
+
+            var outputExtension = GetExtension(rptFormat);
+
+            folder = HostingEnvironment.MapPath($"~/{folderName}/" + t.Id + "/");
             if (!File.Exists(folder)) Directory.CreateDirectory(folder);
-            string[] filePaths = Directory.GetFiles(HostingEnvironment.MapPath("~/Pdf/" + t.Id + "/"), "*.pdf");
+
+            string[] filePaths = Directory.GetFiles(HostingEnvironment.MapPath($"~/{folderName}/" + t.Id + "/"), $"*.{outputExtension}");
             if (filePaths.Length > 0)
             {
                 string root = "";
@@ -106,7 +114,7 @@ namespace FTWebCrystalReport.Controllers
                     root = item;
                     FileInfo info = new FileInfo(root);
                     filename = Path.GetFileName(info.FullName);
-                    path = HostingEnvironment.MapPath("~/Pdf/" + h.Id + "/") + filename;
+                    path = HostingEnvironment.MapPath($"~/{folderName}/" + h.Id + "/") + filename;
                     if (File.Exists(root))
                     {
                         if (File.Exists(path))
@@ -114,7 +122,7 @@ namespace FTWebCrystalReport.Controllers
                     }
                 }
             }
-            string test = "";
+
             ReportDocument a = new ReportDocument();
             //string sapdb = WebConfigurationManager.AppSettings["sapdb"].ToString();
             string rpt = HostingEnvironment.MapPath("~/" + h.RptPath);
@@ -189,13 +197,14 @@ namespace FTWebCrystalReport.Controllers
                 }
             }
 
-            folder = HostingEnvironment.MapPath("~/Pdf/" + t.Id + "/");
+
+            folder = HostingEnvironment.MapPath($"~/{folderName}/" + t.Id + "/");
             if (!File.Exists(folder))
                 System.IO.Directory.CreateDirectory(folder);
 
-            filename = key.Replace("/", "_") + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ".pdf";
+            filename = key.Replace("/", "_") + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + outputExtension;
             path = folder + filename;
-            a.ExportToDisk(ExportFormatType.PortableDocFormat, path);
+            a.ExportToDisk(rptFormat, path);
             a.Close();
             a.Dispose();
             //HttpResponseMessage result = new HttpResponseMessage(HttpStatusCode.OK);
@@ -207,6 +216,33 @@ namespace FTWebCrystalReport.Controllers
             //return result;
             //}
             return filename;
+        }
+
+        private string GetExtension(ExportFormatType type)
+        {
+            switch (type)
+            {
+                case ExportFormatType.CrystalReport: return ".rpt";
+                case ExportFormatType.RichText: return ".rtf";
+                case ExportFormatType.WordForWindows: return ".doc";
+                case ExportFormatType.Excel: return ".xls";
+                case ExportFormatType.PortableDocFormat: return ".pdf";
+                case ExportFormatType.HTML32:
+                case ExportFormatType.HTML40: return ".html";
+                case ExportFormatType.ExcelRecord: return ".xls";
+                case ExportFormatType.Text: return ".txt";
+                case ExportFormatType.CharacterSeparatedValues: return ".csv";
+                case ExportFormatType.TabSeperatedText: return ".tsv";
+                case ExportFormatType.EditableRTF: return ".rtf";
+                case ExportFormatType.Xml: return ".xml";
+                case ExportFormatType.RPTR: return ".rptr";
+                case ExportFormatType.ExcelWorkbook:
+                case ExportFormatType.XLSXPagebased:
+                case ExportFormatType.XLSXRecord:
+                    return ".xlsx";
+                default:
+                    return "";
+            }
         }
     }
 }
