@@ -365,13 +365,12 @@
                     } else {
                         window.open(fileUrl, '_blank', '');
                         //window.open(domain_url + report_app + "/Output/" + report_id + "/" + result, '_blank', '');
-                    }
 
-                    console.log()
+                        setTimeout(function () {
+                            window.close();
+                        }, 500);
+                    }
                     hideModal();
-                    setTimeout(function () {
-                        window.close();
-                    }, 500);
                 },
                 error: function (res, d) {
                     //toastr.error(jQuery.parseJSON(res.responseText).Message);
