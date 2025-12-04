@@ -58,6 +58,8 @@
   <div class="modal-dialog" role="document"  style="max-width:90%" >
     <div class="modal-content">
       <div class="modal-header">
+          <h5 class="modal-title" id="lblTitle">Title</h5>
+
        <%-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>--%>
       </div>
       <div class="modal-body" style="max-height: calc(100vh - 210px);overflow-y: auto;" >
@@ -65,6 +67,19 @@
             <div class="col-md-12">
                 <input type="text" class="form-control" id="txtID" style="display:none;" />
                 <input type="text" class="form-control" id="txtLineID" style="display:none;" />
+
+                <div class="form-group row align-items-center">
+                 <!-- Label -->
+                 <label for="ddlExportType" class="col-md-3 col-form-label">Export Type</label>
+ 
+                <!-- Combo box -->
+                <div class="col-md-9">
+                        <select id="ddlExportType" class="form-control">
+                            <option value="PortableDocFormat" selected="selected">PDF</option>
+                            <option value="ExcelWorkbook">Excel</option>
+                        </select>
+                    </div>
+                </div>
                 <table id="itemdetails" class="table table-striped table-bordered table-hover" cellspacing="0"  style="width:100%;">
                 <thead>
                     <tr>
@@ -87,6 +102,7 @@
     </div>
   </div>
 </div>
+
     <div class="modal fade" id="lookupModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" style=""width:60%" >
   <div class="modal-dialog" role="document" >
     <div class="modal-content">
@@ -158,6 +174,7 @@
     }
     $(document).ready(function () {
         var url = window.location.href;
+        var pageTitle = "";
         //var domain_url = "http://localhost:50600";
         var domain_url = get_hostname(url)
         var report_app = ""; //"/FTWebCrystalReport";
@@ -254,6 +271,8 @@
                 data: {},
                 success: function (result) {
                     console.log(result);
+                    $("#lblTitle").text(result.rptDisplayName);
+
                     $.each(result.lines, function (idx1, value1) {
                         itemdetails.row.add([
                             this["id"],
@@ -313,6 +332,7 @@
 
             var obj = {
                 id: id.val(),
+                ReportFormat: $("#ddlExportType").val(),
                 lines: lines
             }
 
@@ -324,12 +344,30 @@
                 data: JSON.stringify(obj),
                 contentType: "application/json; charset=utf-8",
                 success: function (result) {
-
+                        
                     //downloadFile("pathinfo.pdfpath + "PR/" + result, result);
                     ButtonReset(button, text);
                     toastr.success("Report generated.");
                     //window.open(pathinfo.pdfpath + datainfo.username + "/" + result, '_blank', '');
-                    window.open(domain_url + report_app + "/pdf/" + report_id + "/" + result, '_blank', '');
+
+                    var extension = result.split('.').pop().toLowerCase();
+                    var fileUrl = domain_url + report_app + "/Output/" + report_id + "/" + result;
+
+                    console.log(fileUrl, extension);
+
+                    if (extension === "xls" || extension === "xlsx") {
+                        var link = document.createElement('a');
+                        link.href = fileUrl;
+                        link.download = result;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        window.open(fileUrl, '_blank', '');
+                        //window.open(domain_url + report_app + "/Output/" + report_id + "/" + result, '_blank', '');
+                    }
+
+                    console.log()
                     hideModal();
                     setTimeout(function () {
                         window.close();
