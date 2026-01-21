@@ -114,7 +114,18 @@ namespace FTWebCrystalReport.Models
                     d.SKHdr = skhdr;
                     if (dt.Columns.Contains(CN_ParamName)) d.ParamName = dt.Rows[i][CN_ParamName].ToString().Trim();
                     if (dt.Columns.Contains(CN_ParamDisplayName)) d.ParamDisplayName = dt.Rows[i][CN_ParamDisplayName].ToString().Trim();
-                    if (dt.Columns.Contains(CN_DataType)) d.DataType = dt.Rows[i][CN_DataType].ToString().Trim() == "0" ? "string" : "date";
+                    if (dt.Columns.Contains(CN_DataType))
+                    {
+                        var raw = dt.Rows[i][CN_DataType].ToString().Trim();
+
+                        if (!int.TryParse(raw, out var value) ||
+                            !Enum.IsDefined(typeof(DataTypeEnum), value))
+                        {
+                            throw new Exception($"Invalid parameter data type detected.\r\nValue: {raw}. Expected values: 0 (String), 1 (Date), 2 (Numeric).");
+                        }
+
+                        d.DataType = ((DataTypeEnum)value).ToString();
+                    }
                     if (dt.Columns.Contains(CN_ParamSQL)) d.ParamSQL = dt.Rows[i][CN_ParamSQL].ToString().Trim() ;
                     //if (dt.Columns.Contains(CN_ParamValue)) d.ParamValue = dt.Rows[i][CN_ParamValue].ToString().Trim();
 
